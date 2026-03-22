@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>AI Tutor</title>
+
+<style>
+
+body{
+margin:0;
+font-family: "Segoe UI", Arial;
+background: linear-gradient(135deg,#eef2f7,#d9e4f5);
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+.container{
+width:520px;
+height:680px;
+background:white;
+border-radius:14px;
+box-shadow:0 10px 30px rgba(0,0,0,0.15);
+display:flex;
+flex-direction:column;
+overflow:hidden;
+}
+
+.header{
+background:#4a6cf7;
+color:white;
+padding:18px;
+font-size:20px;
+font-weight:600;
+text-align:center;
+}
+
+.suggestions{
+padding:10px;
+border-bottom:1px solid #eee;
+background:#f7f9ff;
+}
+
+.suggestions button{
+margin:5px;
+padding:8px 12px;
+border:none;
+border-radius:8px;
+background:#e3e8ff;
+cursor:pointer;
+font-size:13px;
+}
+
+.suggestions button:hover{
+background:#d0d7ff;
+}
+
+.chat{
+flex:1;
+padding:20px;
+overflow-y:auto;
+background:#f9fbff;
+}
+
+.message{
+max-width:75%;
+padding:12px 16px;
+margin:10px 0;
+border-radius:12px;
+font-size:15px;
+line-height:1.4;
+}
+
+.user{
+background:#4a6cf7;
+color:white;
+margin-left:auto;
+border-bottom-right-radius:4px;
+}
+
+.bot{
+background:white;
+border:1px solid #e2e6f0;
+border-bottom-left-radius:4px;
+}
+
+.sources{
+margin-top:10px;
+font-size:13px;
+color:#555;
+}
+
+.input-area{
+display:flex;
+padding:15px;
+border-top:1px solid #e4e7f0;
+background:white;
+}
+
+input{
+flex:1;
+padding:12px;
+border-radius:8px;
+border:1px solid #ddd;
+font-size:15px;
+outline:none;
+}
+
+button.ask{
+margin-left:10px;
+padding:12px 20px;
+border:none;
+border-radius:8px;
+background:#4a6cf7;
+color:white;
+font-size:15px;
+cursor:pointer;
+}
+
+button.ask:hover{
+background:#3653d8;
+}
+
+.loader{
+font-style:italic;
+color:#777;
+margin-top:5px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+📚 AI Tutor
+</div>
+
+<div class="suggestions">
+
+<b>Suggested Questions</b><br>
+
+<button onclick="askSuggested(this)">
+What happened when the hailstorm came?
+</button>
+
+<button onclick="askSuggested(this)">
+Why did Lencho go to the town?
+</button>
+
+<button onclick="askSuggested(this)">
+What were Lencho's feelings when the hail stopped?
+</button>
+
+<button onclick="askSuggested(this)">
+Who helped Lencho?
+</button>
+
+</div>
+
+<div id="chat" class="chat"></div>
+
+<div class="input-area">
+<input id="question" placeholder="Ask your question...">
+<button class="ask" onclick="askQuestion()">Ask</button>
+</div>
+
+</div>
+
+<script>
+
+function askSuggested(button){
+const question = button.innerText
+askQuestion(question)
+}
+
+async function askQuestion(customQuestion){
+
+const input = document.getElementById("question")
+
+let question = customQuestion || input.value.trim()
+
+if(!question) return
+
+const chat = document.getElementById("chat")
+
+chat.innerHTML += `<div class="message user">${question}</div>`
+
+input.value=""
+
+const loadingId = "loading" + Date.now()
+
+chat.innerHTML += `<div id="${loadingId}" class="loader">AI Tutor is thinking...</div>`
+
+chat.scrollTop = chat.scrollHeight
+
+try{
+
+const response = await fetch(
+"http://127.0.0.1:8000/ask?q=" + encodeURIComponent(question)
+)
+
+const data = await response.json()
+
+document.getElementById(loadingId).remove()
+
+chat.innerHTML += `
+<div class="message bot">
+${data.answer}
+
+<div class="sources">
+<b>Sources</b><br>
+${data.sources.join("<br>")}
+</div>
+</div>
+`
+
+chat.scrollTop = chat.scrollHeight
+
+}catch(error){
+
+document.getElementById(loadingId).remove()
+
+chat.innerHTML += `
+<div class="message bot">
+⚠️ Could not connect to the server
+</div>
+`
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
